@@ -7,7 +7,7 @@
 
 ## TECH STACK
 
-1. Python, Scala, JAVA
+1. Python
 2. Spark
 3. PostgreSQL
 4. HIVE
@@ -18,6 +18,13 @@
 ## DATA SOURCES
 
 ** Website ** : [https://prim.iledefrance-mobilites.fr/en/catalogue-DATA](https://prim.iledefrance-mobilites.fr/en/catalogue-data)
+
+### DATA NEEDED
+
+- https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/emplacement-des-gares-idf-data-generalisee
+- https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/emplacement-des-gares-idf
+- https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/histo-validations-reseau-ferre
+- https://prim.iledefrance-mobilites.fr/fr/apis/idfm-ivtr-requete_globale
 
 ## API REFERENCES
 

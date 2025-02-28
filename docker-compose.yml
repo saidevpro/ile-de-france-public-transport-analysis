@@ -1,0 +1,145 @@
+services:
+  kafka:
+    image: apache/kafka:3.7.2
+    container_name: kafka
+    env_file:
+      - kafka.env
+    volumes:
+      - ./src/kafka:/app
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
+    container_name: namenode
+    environment:
+      - CLUSTER_NAME=test-cluster
+    ports:
+      - "50070:50070" # HDFS Web UI
+      - "9000:9000" # HDFS Namenode RPC
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - ./data:/data
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    container_name: datanode
+    environment:
+      - CLUSTER_NAME=test-cluster
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    depends_on:
+      - namenode
+    ports:
+      - "50075:50075" # HDFS Datanode Web UI
+    env_file:
+      - ./hadoop.env
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop2.7.4-java8
+    container_name: resourcemanager
+    depends_on:
+      - namenode
+      - datanode
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    ports:
+      - "8088:8088" # Resource Manager UI
+    env_file:
+      - ./hadoop.env
+
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop2.7.4-java8
+    container_name: nodemanager
+    depends_on:
+      - resourcemanager
+      - namenode
+      - datanode
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    env_file:
+      - ./hadoop.env
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop2.7.4-java8
+    container_name: historyserver
+    depends_on:
+      - resourcemanager
+      - namenode
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    ports:
+      - "8188:8188" # History Server UI
+    env_file:
+      - ./hadoop.env
+
+  spark-master:
+    image: bitnami/spark:latest
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+    ports:
+      - "7077:7077" # Spark Master RPC
+      - "8080:8080" # Spark Master Web UI
+    depends_on:
+      - namenode
+      - resourcemanager
+      - kafka
+    volumes:
+      - ./src/spark:/app
+      - ./data:/data
+
+  spark-worker:
+    image: bitnami/spark:latest
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    ports:
+      - "8081:8081" # Spark Worker Web UI
+    depends_on:
+      - spark-master
+
+  hive-metastore:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-metastore
+    environment:
+      - HIVE_CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+      - HIVE_METASTORE_URIS=thrift://localhost:9083
+      - SERVICE_PRECONDITION=namenode:9000 hive-metastore-postgresql:5432
+    ports:
+      - "9083:9083"
+    depends_on:
+      - datanode
+      - namenode
+      - postgres-db
+    env_file:
+      - ./hadoop-hive.env
+    command: ["/opt/hive/bin/hive", "--service metastore"]
+
+  hive-metastore-postgresql:
+    image: bde2020/hive-metastore-postgresql:2.3.0
+    container_name: hive-metastore-postgresql
+
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: datamart
+    ports:
+      - "5433:5432"
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: mariadb
+      MYSQL_DATABASE: root
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
