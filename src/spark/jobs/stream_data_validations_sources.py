@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType
 from pyspark.sql.functions import col
 
-SOURCE_PATH       = 'file:///data'
+SOURCE_PATH       = 'file:///data/validations'
 OUTPUT_PATH         = 'hdfs://namenode:9000/vdata/streamdata'
 CHECKPOINT_LOCATION = 'hdfs://namenode:9000/vdata/checkpoints'
 
