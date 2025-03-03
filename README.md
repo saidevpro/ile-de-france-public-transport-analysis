@@ -25,6 +25,7 @@
 - https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/emplacement-des-gares-idf
 - https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/histo-validations-reseau-ferre
 - https://prim.iledefrance-mobilites.fr/fr/apis/idfm-ivtr-requete_globale
+- https://stif.opendatasoft.com/explore/dataset/projets_lignes_idf/information/
 
 ## API REFERENCES
 

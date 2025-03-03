@@ -1,52 +1,55 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StringType
+from pyspark.sql.types import StructType, StringType, IntegerType, DateType
 from pyspark.sql.functions import col
 
-SOURCE_PATH       = 'file:///data/validations'
+SOURCE_PATH_CSV       = 'file:///data/validations/*.csv'
+SOURCE_PATH_TXT      = 'file:///data/validations/*.txt'
 OUTPUT_PATH         = 'hdfs://namenode:9000/vdata/streamdata'
 CHECKPOINT_LOCATION = 'hdfs://namenode:9000/vdata/checkpoints'
 
 spark = SparkSession.builder \
-  .appName("Streams RAW DATA -> HDFS") \
+  .appName("Streams SOURCES DATA -> HDFS") \
   .config("spark.hadoop.fs.defaultFS", "hdfs://namenode:9000") \
   .getOrCreate()
   
 schema = StructType() \
-  .add("JOUR", StringType()) \
-  .add("CODE_STIF_TRNS", StringType()) \
-  .add("CODE_STIF_RES", StringType()) \
-  .add("CODE_STIF_ARRET", StringType()) \
+  .add("JOUR", DateType()) \
+  .add("CODE_STIF_TRNS", IntegerType()) \
+  .add("CODE_STIF_RES", IntegerType()) \
+  .add("CODE_STIF_ARRET", IntegerType()) \
   .add("LIBELLE_ARRET", StringType()) \
-  .add("lda", StringType()) \
+  .add("ID_ZDC", IntegerType()) \
   .add("CATEGORIE_TITRE", StringType()) \
-  .add("NB_VALD", StringType()) \
-  .add("value", StringType())
+  .add("NB_VALD", IntegerType()) \
   
-df = spark.readStream \
+# STREAM ON CSV FILES
+qc = spark.readStream \
   .format("csv") \
   .option("header", "true") \
+  .option("delimiter", ";")\
   .schema(schema) \
-  .load(SOURCE_PATH)
-
-query = df.writeStream \
+  .csv(SOURCE_PATH_CSV) \
+  .writeStream \
   .outputMode("append") \
-  .format("parquet") \
+  .format("csv") \
+  .option("header", "true") \
   .option("path", OUTPUT_PATH) \
-  .option("checkpointLocation", CHECKPOINT_LOCATION) \
+  .option("checkpointLocation", f"{CHECKPOINT_LOCATION}/csv") \
   .start()
-
-query.awaitTermination()
   
+# STREAM ON TEXT FILES
+qt = spark.readStream \
+  .format("text") \
+  .text(SOURCE_PATH_TXT) \
+  .writeStream \
+  .outputMode("append") \
+  .format("text") \
+  .option("path", OUTPUT_PATH) \
+  .option("checkpointLocation", f"{CHECKPOINT_LOCATION}/txt") \
+  .start()
   
+qc.awaitTermination()
+qt.awaitTermination()
 
   
-  
-
-    
-  
-
-
-
-
-
     

@@ -3,12 +3,28 @@ services:
     image: apache/kafka:3.7.2
     container_name: kafka
     env_file:
-      - kafka.env
+      - ./kafka.env
     volumes:
       - ./src/kafka:/app
     ports:
       - "9092:9092"
       - "9093:9093"
+
+  python-app:
+    image: python:3.9-slim
+    container_name: python-app
+    working_dir: /app
+    volumes:
+      - ./src/app:/app
+      - ./data:/data
+    command: tail -f /dev/null
+    depends_on:
+      - kafka
+    env_file:
+      - ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile
 
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
@@ -90,6 +106,7 @@ services:
     volumes:
       - ./src/spark:/app
       - ./data:/data
+      - ./bin:/app/bin
 
   spark-worker:
     image: bitnami/spark:latest
@@ -97,6 +114,7 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_SQL_WAREHOUSE_DIR=hdfs://namenode:9000/hive/warehouse
     ports:
       - "8081:8081" # Spark Worker Web UI
     depends_on:
@@ -106,8 +124,11 @@ services:
     image: bde2020/hive:2.3.2-postgresql-metastore
     container_name: hive-metastore
     environment:
+      - HIVE_EXECUTION_ENGINE=spark
       - HIVE_CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - HIVE_METASTORE_URIS=thrift://localhost:9083
+      - SPARK_MASTER=spark://spark-master:7077
+      - HIVE_WAREHOUSE_DIR=hdfs://namenode:9000/hive/warehouse
       - SERVICE_PRECONDITION=namenode:9000 hive-metastore-postgresql:5432
     ports:
       - "9083:9083"
@@ -115,6 +136,7 @@ services:
       - datanode
       - namenode
       - postgres-db
+      - mariadb
     env_file:
       - ./hadoop-hive.env
     command: ["/opt/hive/bin/hive", "--service metastore"]
@@ -137,9 +159,9 @@ services:
     image: mariadb:latest
     container_name: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: mariadb
-      MYSQL_DATABASE: root
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MARIADB_ROOT_PASSWORD: mariadb
+      MARIADB_DATABASE: kpi
+      MARIADB_USER: root
+      MARIADB_PASSWORD: root
     ports:
       - "3306:3306"
