@@ -7,7 +7,7 @@ CHECKPOINT_LOCATION = 'hdfs://namenode:9000/vdata/checkpoints_mysql_raw/'
 mysql_url = "jdbc:mysql://mariadb:3306/kpi"
 mysql_properties = {
   "user": "root",
-  "password": "mariadb",
+  "password": "root",
   "driver": "com.mysql.cj.jdbc.Driver"
 }
 mysql_connector_jars = 'file:///app/bin/mysql-connector-j-9.2.0.jar'

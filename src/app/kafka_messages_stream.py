@@ -34,11 +34,24 @@ if(response.status_code == 200):
     for record in data["disruptions"]:
       record_id = record["id"]
       print(f"Sending message for record {record_id}")
-      
       producer.send(TOPIC_NAME, record)
       producer.flush()
       sleep(2)
       
+      
+
+# while True: 
+#   response = requests.get(f"{BASE_API_URL}/v2/marketplace/v2/navitia/line_reports/line_reports?depth=2&count=100")
+#   data = response.json()
+  
+#   if(data and data["disruptions"]): 
+#     for record in data["disruptions"]:
+#       record_id = record["id"]
+#       print(f"Sending message for record {record_id}")
+#       producer.send(TOPIC_NAME, record)
+#       producer.flush()
+      
+#   sleep(2)
 
       
   

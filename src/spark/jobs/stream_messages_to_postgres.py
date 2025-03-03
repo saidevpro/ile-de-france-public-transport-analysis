@@ -4,7 +4,7 @@ from os.path import abspath
 
 SOURCE_DATA = 'hdfs://namenode:9000/hive/warehouse/idf.db/messages'
 CHECKPOINT_LOCATION = 'hdfs://namenode:9000/messages/checkpoints_mysql_raw/'
-postgres_url = "jdbc:postgresql://postgres-db:5432/datamart"
+postgres_url = "jdbc:postgresql://postgres-db:5432/streams"
 postgres_properties = {
   "user": "root",
   "password": "root",
